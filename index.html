@@ -557,7 +557,7 @@ function haptic(kind, arg){
 }
 
 /* ===== данные ===== */
-const D = { name:'', nick:'', sex:'', bio:'', photo:'', ev:null, pay:null, guest:false, guestSex:'', receipt:false, bookings:[] };
+const D = { name:'', nick:'', sex:'', bio:'', photo:'', ev:null, pay:null, guest:false, guestSex:'', receipt:false, receiptData:'', bookings:[] };
 
 /* Тарифы: [женский, мужской] */
 const PAYS = [
@@ -570,6 +570,9 @@ const PAYS = [
 ];
 
 const COVER = IMG_COVER1;
+
+/* ⬇️ СЮДА вставить ссылку на Google-скрипт (шаг 2) */
+const ENDPOINT = 'https://script.google.com/macros/s/AKfycbyTowLCbSo4XN9yfgKpT1cg5O1vmxoHIhUjhDbFoOs1aC-fSRO9KNXPhXRA_T5qMvIH/exec';
 
 const MAP_URL = 'https://maps.app.goo.gl/RwYJtd7mxgN4hTAR7?g_st=ic';
 
@@ -718,7 +721,11 @@ function cp(t,b){
   haptic('notificationOccurred','success');
 }
 function setReceipt(i){
-  if(!i.files[0]) return;
+  const f = i.files[0];
+  if(!f) return;
+  const r = new FileReader();
+  r.onload = e => { D.receiptData = e.target.result; };
+  r.readAsDataURL(f);
   D.receipt=true;
   drop.classList.add('has');
   drop.innerHTML='<b>✓</b>Чек прикреплён · нажмите, чтобы заменить';
@@ -726,14 +733,47 @@ function setReceipt(i){
 }
 
 /* ===== заявка ===== */
+async function sendBooking(){
+  if (!ENDPOINT) return;
+  const p = PAYS.find(x=>x.id===D.pay);
+  const mine = price(p, D.sex);
+  const gst  = D.guest ? price(p, D.guestSex) : 0;
+  const e = D.ev;
+  const tgUser = (TG && TG.initDataUnsafe && TG.initDataUnsafe.user) ? TG.initDataUnsafe.user : {};
+  const payload = {
+    name: D.name,
+    nick: D.nick,
+    sex: D.sex === 'm' ? 'Мужской' : 'Женский',
+    event: `${e.date.getDate()} ${MON[e.date.getMonth()]} (${DOW[e.date.getDay()]}), 19:00`,
+    seats: D.guest ? 2 : 1,
+    guest: D.guest ? (D.guestSex === 'm' ? 'Мужчина' : 'Женщина') : '',
+    payMethod: p.nm,
+    amount: fmt(mine + gst, p.cur),
+    breakdown: D.guest ? `${fmt(mine,p.cur)} + гость ${fmt(gst,p.cur)}` : '',
+    tgId: tgUser.id || '',
+    tgName: tgUser.username ? '@' + tgUser.username : (tgUser.first_name || ''),
+    receipt: D.receiptData || ''
+  };
+  try {
+    await fetch(ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+  } catch (err) {
+    console.error('Заявка не отправилась:', err);
+  }
+}
+
 function book(){
   const p=PAYS.find(x=>x.id===D.pay);
+  sendBooking();
   D.bookings.push({ date:new Date(D.ev.date), pay:p.nm, guest:D.guest });
   D.ev.taken += D.guest?2:1;
   const e=D.ev;
   okTxt.textContent = `Игра ${e.date.getDate()} ${MON[e.date.getMonth()]}, ${DOW[e.date.getDay()]} в 19:00. Администратор проверит чек и подтвердит место за столом.`;
   // сброс шага оплаты
-  D.pay=null; D.guest=false; D.guestSex=''; D.receipt=false;
+  D.pay=null; D.guest=false; D.guestSex=''; D.receipt=false; D.receiptData='';
   guest.classList.remove('on');
   guestBox.style.display='none';
   ggm.classList.remove('on'); ggf.classList.remove('on');
