@@ -313,7 +313,7 @@ padding-bottom:env(safe-area-inset-bottom);position:sticky;bottom:0;
     <h2 class="display">Как вас зовут?</h2>
     <p class="sub">Имя видят организаторы и игроки за столом.</p>
     <label class="fl">Имя</label>
-    <input class="f" id="fName" placeholder="Анна" autocomplete="off" oninput="v1()">
+    <input class="f" id="fName" placeholder="Ваше имя" autocomplete="off" oninput="v1()">
   </div>
   <div class="foot"><button class="btn" id="b1" disabled onclick="go('s2')">Далее</button></div>
 </section>
@@ -389,7 +389,7 @@ padding-bottom:env(safe-area-inset-bottom);position:sticky;bottom:0;
 
 <section class="screen" id="s6">
   <div class="hero">
-    <div class="sealmark"></div>
+    <div class="sealmark" id="seal6"></div>
     <h1 class="display" id="hi">Добро пожаловать!</h1>
     <p class="sub">Профиль создан. Теперь запись на игру — в один тап.</p>
   </div>
@@ -628,6 +628,10 @@ function setPhoto(i){
 }
 function done(){
   hi.textContent=`Добро пожаловать, ${D.name}!`;
+  if (D.photo){
+    seal6.style.background = `url(${D.photo}) center/cover no-repeat`;
+    seal6.style.borderColor = '#C9A227';
+  }
   go('s6');
 }
 
