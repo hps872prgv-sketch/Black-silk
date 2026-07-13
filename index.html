@@ -586,7 +586,7 @@ function makeEvents(){
   while(out.length<8){
     if(d.getDay()===2 || d.getDay()===5){
       const seed=(d.getDate()*7+d.getMonth())%14;
-      out.push({ date:new Date(d), taken:seed, cap:18 });
+              out.push({ date:new Date(d), taken:0, cap:18 });
     }
     d.setDate(d.getDate()+1);
   }
