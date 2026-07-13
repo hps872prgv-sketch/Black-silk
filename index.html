@@ -491,6 +491,7 @@ padding-bottom:env(safe-area-inset-bottom);position:sticky;bottom:0;
     </div>
     <span class="eyebrow" style="display:block;margin:26px 0 10px">Мои записи</span>
     <div id="myBk"><div class="empty">Пока ни одной записи.<br>Выберите игру на афише.</div></div>
+          <button class="link" onclick="editProfile()">Изменить профиль</button>
   </div>
   <div class="tabs">
     <button class="tab" onclick="tab('s7',this)"><span class="i mk"></span><span class="l">Игры</span></button>
@@ -630,6 +631,7 @@ function setPhoto(i){
   r.readAsDataURL(f);
 }
 function done(){
+    saveProfile();
   hi.textContent=`Добро пожаловать, ${D.name}!`;
   if (D.photo){
     seal6.style.background = `url(${D.photo}) center/cover no-repeat`;
@@ -796,7 +798,51 @@ function renderProfile(){
     : `<div class="empty">Пока ни одной записи.<br>Выберите игру на афише.</div>`;
 }
 
-renderCards();
+/* ===== память профиля ===== */
+const PKEY = 'bs_profile';
+
+function saveProfile(){
+  const data = JSON.stringify({name:D.name, nick:D.nick, sex:D.sex, bio:D.bio, photo:D.photo});
+  if (TG && TG.CloudStorage) TG.CloudStorage.setItem(PKEY, data, function(){});
+  try { localStorage.setItem(PKEY, data); } catch(e){}
+}
+
+function applyProfile(raw){
+  if(!raw) return false;
+  let p; try { p = JSON.parse(raw); } catch(e){ return false; }
+  if(!p || !p.name || !p.sex) return false;
+  D.name=p.name; D.nick=p.nick||''; D.sex=p.sex; D.bio=p.bio||''; D.photo=p.photo||'';
+  return true;
+}
+
+function editProfile(){
+  fName.value=D.name; fNick.value=D.nick; fBio.value=D.bio;
+  cBio.textContent=D.bio.length;
+  b1.disabled=false; b3.disabled=false;
+  gm.classList.toggle('on', D.sex==='m');
+  gf.classList.toggle('on', D.sex==='f');
+  if(D.photo){ av.style.backgroundImage='url('+D.photo+')'; av.textContent=''; }
+  go('s1');
+}
+
+function tryLocal(){
+  let v=null; try { v=localStorage.getItem(PKEY); } catch(e){}
+  if (applyProfile(v)) toGames();
+}
+
+function boot(){
+  renderCards();
+  if (TG && TG.CloudStorage){
+    TG.CloudStorage.getItem(PKEY, function(err, val){
+      if (!err && applyProfile(val)) { toGames(); return; }
+      tryLocal();
+    });
+  } else {
+    tryLocal();
+  }
+}
+boot();
+
 </script>
 
 </body>
