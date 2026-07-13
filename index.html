@@ -802,20 +802,49 @@ function book(){
 }
 
 /* ===== профиль ===== */
-function renderProfile(){
-  pName.textContent = D.name || '—';
-  pNick.textContent = D.nick ? '«'+D.nick+'»' : '';
-  pSex.textContent = D.sex==='m' ? 'Мужской' : D.sex==='f' ? 'Женский' : '—';
-  if(D.photo){ av2.style.backgroundImage=`url(${D.photo})`; av2.textContent=''; }
-    const list = D.server || [];
-  myBk.innerHTML = list.length
-    ? `<div class="info" style="margin:0">` + list.map(b=>{
-        const ok = String(b.status).indexOf('одтвержд') > -1;
-        return `<div class="ln"><span class="k">${b.event}</span>
-          <span class="v" style="color:${ok?'#4CAF50':'#C9A227'}">${b.status}</span></div>`;
-      }).join('') + `</div>`
-    : `<div class="empty">Пока ни одной записи.<br>Выберите игру на афише.</div>`;
-}
+  let bkTab = 'up';
+  function bkSwitch(t){ bkTab = t; renderProfile(); haptic('selectionChanged'); }
+
+  function isPast(ev){
+    const m = String(ev).match(/^(\d+)\s+([а-яё]+)/i);
+    if(!m) return false;
+    const day = +m[1];
+    const mon = MON.indexOf(m[2].toLowerCase());
+    if(mon < 0) return false;
+    const now = new Date(); now.setHours(0,0,0,0);
+    let y = now.getFullYear();
+    const d = new Date(y, mon, day);
+    if(d.getTime() < now.getTime() - 200*24*3600*1000) d.setFullYear(y+1);
+    return d.getTime() < now.getTime();
+  }
+
+  function renderProfile(){
+    pName.textContent = D.name || '—';
+    pNick.textContent = D.nick ? '«'+D.nick+'»' : '';
+    pSex.textContent  = D.sex==='m' ? 'Мужской' : D.sex==='f' ? 'Женский' : '—';
+    if(D.photo){ av2.style.backgroundImage=`url(${D.photo})`; av2.textContent=''; }
+
+    const all  = D.server || [];
+    const up   = all.filter(b=>!isPast(b.event));
+    const past = all.filter(b=> isPast(b.event));
+    const list = bkTab==='up' ? up : past;
+
+    const tabs = `<div class="tabs" style="margin-bottom:10px">
+      <button class="tab ${bkTab==='up'?'on':''}" onclick="bkSwitch('up')"><span class="l">Предстоящие · ${up.length}</span></button>
+      <button class="tab ${bkTab==='pa'?'on':''}" onclick="bkSwitch('pa')"><span class="l">Прошедшие · ${past.length}</span></button>
+    </div>`;
+
+    const body = list.length
+      ? `<div class="info" style="margin:0">` + list.map(b=>{
+          const ok = String(b.status).indexOf('одтвержд') > -1;
+          return `<div class="ln"><span class="k">${b.event}</span>
+            <span class="v" style="color:${ok?'#4CAF50':'#C9A227'}">${b.status}</span></div>`;
+        }).join('') + `</div>`
+      : `<div class="empty">${bkTab==='up' ? 'Пока ни одной записи.<br>Выберите игру на афише.' : 'Прошедших игр пока нет.'}</div>`;
+
+    myBk.innerHTML = tabs + body;
+  }
+
 
 /* ===== память профиля ===== */
 const PKEY = 'bs_profile';
