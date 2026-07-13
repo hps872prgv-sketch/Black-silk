@@ -805,6 +805,8 @@ function saveProfile(){
   const data = JSON.stringify({name:D.name, nick:D.nick, sex:D.sex, bio:D.bio, photo:D.photo});
   if (TG && TG.CloudStorage) TG.CloudStorage.setItem(PKEY, data, function(){});
   try { localStorage.setItem(PKEY, data); } catch(e){}
+    if (TG) TG.showAlert(TG.CloudStorage ? 'CloudStorage: есть' : 'CloudStorage: НЕТ');
+
 }
 
 function applyProfile(raw){
