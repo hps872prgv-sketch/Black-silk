@@ -791,10 +791,13 @@ function renderProfile(){
   pNick.textContent = D.nick ? '«'+D.nick+'»' : '';
   pSex.textContent = D.sex==='m' ? 'Мужской' : D.sex==='f' ? 'Женский' : '—';
   if(D.photo){ av2.style.backgroundImage=`url(${D.photo})`; av2.textContent=''; }
-  myBk.innerHTML = D.bookings.length
-    ? `<div class="info" style="margin:0">` + D.bookings.map(b=>
-        `<div class="ln"><span class="k">${b.date.getDate()} ${MON[b.date.getMonth()]} · ${DOW[b.date.getDay()]}</span>
-         <span class="v" style="color:#C9A227">На проверке</span></div>`).join('') + `</div>`
+    const list = D.server || [];
+  myBk.innerHTML = list.length
+    ? `<div class="info" style="margin:0">` + list.map(b=>{
+        const ok = String(b.status).indexOf('одтвержд') > -1;
+        return `<div class="ln"><span class="k">${b.event}</span>
+          <span class="v" style="color:${ok?'#4CAF50':'#C9A227'}">${b.status}</span></div>`;
+      }).join('') + `</div>`
     : `<div class="empty">Пока ни одной записи.<br>Выберите игру на афише.</div>`;
 }
 
@@ -805,7 +808,6 @@ function saveProfile(){
   const data = JSON.stringify({name:D.name, nick:D.nick, sex:D.sex, bio:D.bio, photo:D.photo});
   if (TG && TG.CloudStorage) TG.CloudStorage.setItem(PKEY, data, function(){});
   try { localStorage.setItem(PKEY, data); } catch(e){}
-    if (TG) TG.showAlert(TG.CloudStorage ? 'CloudStorage: есть' : 'CloudStorage: НЕТ');
 
 }
 
@@ -831,9 +833,21 @@ function tryLocal(){
   let v=null; try { v=localStorage.getItem(PKEY); } catch(e){}
   if (applyProfile(v)) toGames();
 }
-
+async function loadBookings(){
+  const tgUser = (TG && TG.initDataUnsafe && TG.initDataUnsafe.user) ? TG.initDataUnsafe.user : {};
+  if (!tgUser.id) return;
+  try {
+    const r = await fetch(ENDPOINT + '?tgId=' + tgUser.id);
+    const j = await r.json();
+    if (j && j.bookings) {
+      D.server = j.bookings;
+      renderProfile();
+    }
+  } catch(e){}
+}
 function boot(){
   renderCards();
+    loadBookings();
   if (TG && TG.CloudStorage){
     TG.CloudStorage.getItem(PKEY, function(err, val){
       if (!err && applyProfile(val)) { toGames(); return; }
