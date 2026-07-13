@@ -593,6 +593,22 @@ function makeEvents(){
   return out;
 }
 const EVENTS = makeEvents();
+  /* реальные счётчики мест из таблицы */
+async function loadSeats(){
+  if(!ENDPOINT) return;
+  try{
+    const r = await fetch(ENDPOINT);
+    const j = await r.json();
+    if(!j || !j.seats) return;
+    const map = {};
+    Object.keys(j.seats).forEach(k=>{ map[k.toLowerCase()] = j.seats[k]; });
+    EVENTS.forEach(e=>{
+      const key = `${e.date.getDate()} ${MON[e.date.getMonth()]} (${DOW[e.date.getDay()]}), 19:00`.toLowerCase();
+      e.taken = map[key] || 0;
+    });
+    renderCards();
+  }catch(err){ console.error('seats', err); }
+}
 
 /* ===== навигация ===== */
 function go(id){
