@@ -864,6 +864,7 @@ async function loadBookings(){
 function boot(){
   renderCards();
     loadBookings();
+      loadSeats();
   if (TG && TG.CloudStorage){
     TG.CloudStorage.getItem(PKEY, function(err, val){
       if (!err && applyProfile(val)) { toGames(); return; }
