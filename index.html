@@ -356,15 +356,14 @@ padding-bottom:env(safe-area-inset-bottom);position:sticky;bottom:0;
   <div class="steps"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div>
   <div class="body">
     <h2 class="display">О себе</h2>
-    <p class="sub">Необязательно. Текст видят игроки в вашей карточке.</p>
+    <p class="sub">Текст видят игроки в вашей карточке.</p>
     <label class="fl">Пара строк</label>
     <textarea class="f" id="fBio" maxlength="500" placeholder="Чем занимаетесь, давно ли играете, любимые роли…" oninput="bio(this)"></textarea>
     <div class="count"><span id="cBio">0</span>/500</div>
   </div>
-  <div class="foot">
-    <button class="btn" onclick="go('s5')">Далее</button>
-    <button class="link" onclick="go('s5')">Пропустить</button>
-  </div>
+            <div class="foot">
+            <button class="btn" id="b4" disabled onclick="go('s5')">Далее</button>
+          </div>
 </section>
 
 <!-- 5 · Фото -->
@@ -639,7 +638,7 @@ function sex(s){
   gm.classList.toggle('on',s==='m'); gf.classList.toggle('on',s==='f');
   b3.disabled=false;
 }
-function bio(t){ D.bio=t.value; cBio.textContent=t.value.length; }
+function bio(t){ D.bio=t.value; cBio.textContent=t.value.length; b4.disabled=D.bio.trim().length<10; }
 function setPhoto(i){
   const f=i.files[0]; if(!f) return;
   const r=new FileReader();
@@ -901,7 +900,7 @@ function applyProfile(raw){
 function editProfile(){
   fName.value=D.name; fNick.value=D.nick; fBio.value=D.bio;
   cBio.textContent=D.bio.length;
-  b1.disabled=false; b3.disabled=false;
+        b1.disabled=false; b3.disabled=false; b4.disabled=D.bio.trim().length<10;
   gm.classList.toggle('on', D.sex==='m');
   gf.classList.toggle('on', D.sex==='f');
   if(D.photo){ av.style.backgroundImage='url('+D.photo+')'; av.textContent=''; }
