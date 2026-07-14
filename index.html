@@ -408,10 +408,11 @@ padding-bottom:env(safe-area-inset-bottom);position:sticky;bottom:0;
   </div>
   <div class="listhead"><span class="eyebrow">Ближайшие игры</span><span class="eyebrow" id="cnt"></span></div>
   <div class="cards" id="cards"></div>
-  <div class="tabs">
-    <button class="tab on" onclick="tab('s7',this)"><span class="i mk"></span><span class="l">Игры</span></button>
-    <button class="tab" onclick="tab('s11',this)"><span class="i">☺</span><span class="l">Профиль</span></button>
-  </div>
+          <div class="tabs">
+          <button class="tab on" onclick="tab('s7',this)"><span class="i mk"></span><span class="l">Игры</span></button>
+          <button class="tab" onclick="tab('s13',this)"><span class="i">🎭</span><span class="l">Роли</span></button>
+          <button class="tab" onclick="tab('s11',this)"><span class="i">☺</span><span class="l">Профиль</span></button>
+        </div>
 </section>
 
 <!-- 8 · Карточка события -->
@@ -492,10 +493,11 @@ padding-bottom:env(safe-area-inset-bottom);position:sticky;bottom:0;
     <div id="myBk"><div class="empty">Пока ни одной записи.<br>Выберите игру на афише.</div></div>
           <button class="link" onclick="editProfile()">Изменить профиль</button>
   </div>
-  <div class="tabs">
-    <button class="tab" onclick="tab('s7',this)"><span class="i mk"></span><span class="l">Игры</span></button>
-    <button class="tab on" onclick="tab('s11',this)"><span class="i">☺</span><span class="l">Профиль</span></button>
-  </div>
+          <div class="tabs">
+          <button class="tab" onclick="tab('s7',this)"><span class="i mk"></span><span class="l">Игры</span></button>
+          <button class="tab" onclick="tab('s13',this)"><span class="i">🎭</span><span class="l">Роли</span></button>
+          <button class="tab on" onclick="tab('s11',this)"><span class="i">☺</span><span class="l">Профиль</span></button>
+        </div>
 </section>
 
 <!-- 12 · Заявка принята -->
@@ -508,6 +510,20 @@ padding-bottom:env(safe-area-inset-bottom);position:sticky;bottom:0;
   </div>
   <div class="foot"><button class="btn" onclick="toGames()">К играм</button></div>
 </section>
+  
+      <!-- 13 · Роли -->
+
+      <section class="screen" id="s13">
+        <div class="topbar"><span class="ttl" style="margin-left:4px">Роли</span></div>
+        <div class="body" style="padding:20px">
+          <div id="rolesBox"></div>
+        </div>
+        <div class="tabs">
+          <button class="tab" onclick="tab('s7',this)"><span class="i mk"></span><span class="l">Игры</span></button>
+          <button class="tab on" onclick="tab('s13',this)"><span class="i">🎭</span><span class="l">Роли</span></button>
+          <button class="tab" onclick="tab('s11',this)"><span class="i">☺</span><span class="l">Профиль</span></button>
+        </div>
+      </section>
 
 </div>
 
@@ -608,6 +624,55 @@ async function loadSeats(){
     renderCards();
   }catch(err){ console.error('seats', err); }
 }
+    /* ===== роли ===== */
+    const ROLES = [
+      { team:'🖤 Мирный город', list:[
+        ['Мирный','Играет в команде со всеми мирными ролями. Цель — выголосовать всю Мафию, а также Маньяка и Отравителя.'],
+        ['Комиссар','Ищет только Мафию. Маньяк и Отравитель показываются как Мирные — даже когда Мафии за столом не осталось.'],
+        ['Доктор','Ночью выбирает игрока, которому даёт иммунитет от ночного убийства. Себя может полечить 1 раз за игру, любого другого — через раз.'],
+        ['Ведьма','Просыпается самой первой. Может 1 раз за игру воскресить игрока, выбывшего в прошлый раз (того, кто ещё не знает никакие роли).'],
+        ['Камикадзе','Просыпается ночью и ищет Маньяка и Отравителя. Доктор не может его полечить. При выходе из игры обязан забрать с собой 1 игрока. Ведущий вскрывает эту роль при уходе.'],
+        ['Заклинатель','В первую ночь накладывает убивающее заклятие на 3 игроков. Во вторую ночь может поменять выбор — он останется на всю игру. Если Заклинателя убивают или выголосовывают, выбранные им игроки покидают игру вместе с ним.'],
+        ['Палач','В случае спорного голосования город уходит в ночь, и ведущий будит Палача. Он показывает жестом, кто из спорных игроков покидает игру — либо снимает со стола обоих.'],
+        ['Купидон','Связывает на всю игру двух игроков. Если одного убили — второй уходит следом. Если одного заголосовали — второй тоже покидает игру. Если одного полечил Доктор — лечение распространяется на обоих.'],
+        ['Менталист','Может воскресить 1 игрока за всю игру. Если воскресил Мирного — сам покидает игру. Если Мафию или Маньяка — остаётся жив.'],
+        ['Рентген','На эту роль нельзя даже намекать. При выходе из игры выбирает любого игрока, и ведущий озвучивает его роль в стол. Игрок остаётся в игре, но все знают, кто он.']
+      ]},
+      { team:'🩸 Мафия', list:[
+        ['Дон мафии','Играет со своей мафией. Цель — найти Комиссара и вывести его из игры.'],
+        ['Мафия','Играет в команде со своим Доном. Цель — найти и вывести из игры все ролевые карты. Победа наступает, когда Мафий за столом столько же, сколько Мирных, после дневного голосования.'],
+        ['Аристократ','Когда Дон покидает игру, вступает на его роль и выполняет его действия.'],
+        ['Блокировщик','Просыпается вместе с мафией и блокирует ночью Комиссара и Доктора. Комиссар не может сделать проверку, Доктор не может полечить.']
+      ]},
+      { team:'🎭 Сами за себя', list:[
+        ['Маньяк','Просыпается ночью и убивает любого игрока по своему усмотрению.'],
+        ['Отравитель','Просыпается и выбирает жертву. Отравленный игрок выбывает после дневного голосования.'],
+        ['Шут','Если собирает большинство рук на дневном голосовании — побеждает в игре.'],
+        ['Мутный','На третью ночь выбирает, кем стать: мафией, отравителем, маньяком или мирным.']
+      ]}
+    ];
+
+    let openRole = null;
+
+    function toggleRole(k){ openRole = (openRole===k ? null : k); renderRoles(); haptic('selectionChanged'); }
+
+    function renderRoles(){
+      let h = '';
+      ROLES.forEach((g,gi)=>{
+        h += `<span class="eyebrow" style="display:block;margin:${gi?26:0}px 0 10px">${g.team}</span>`;
+        h += `<div class="info" style="margin:0">`;
+        g.list.forEach((r,ri)=>{
+          const k = gi+'-'+ri;
+          const on = openRole===k;
+          h += `<div class="ln" onclick="toggleRole('${k}')" style="cursor:pointer;display:block">
+                  <span class="k" style="color:${on?'#C9A227':''}">${r[0]}${on?'':' ›'}</span>
+                  ${on?`<div style="margin-top:8px;opacity:.75;font-size:14px;line-height:1.5">${r[1]}</div>`:''}
+                </div>`;
+        });
+        h += `</div>`;
+      });
+      rolesBox.innerHTML = h;
+    }
 
 /* ===== навигация ===== */
 function go(id){
@@ -618,6 +683,7 @@ function go(id){
   if(id==='s9') renderPays();
   if(id==='s10') renderReq();
   if(id==='s11') renderProfile();
+        if(id==='s13') renderRoles();
 }
 function tab(id,el){
   go(id);
