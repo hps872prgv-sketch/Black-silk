@@ -817,6 +817,22 @@ function book(){
     if(d.getTime() < now.getTime() - 200*24*3600*1000) d.setFullYear(y+1);
     return d.getTime() < now.getTime();
   }
+    let plView = null;
+
+    async function openPlayers(ev){
+      plView = { ev: ev, loading: true, players: [], taken: 0, max: 18 };
+      renderProfile();
+      try{
+        const r = await fetch(ENDPOINT + '?action=players&event=' + encodeURIComponent(ev));
+        const j = await r.json();
+        plView = { ev: ev, loading: false, players: j.players || [], taken: j.taken || 0, max: j.max || 18 };
+      }catch(e){
+        plView = { ev: ev, loading: false, players: [], taken: 0, max: 18, err: true };
+      }
+      renderProfile();
+    }
+
+    function closePlayers(){ plView = null; renderProfile(); haptic('impactOccurred','light'); }
 
   function renderProfile(){
     pName.textContent = D.name || '—';
@@ -834,15 +850,33 @@ function book(){
       <button class="tab ${bkTab==='pa'?'on':''}" onclick="bkSwitch('pa')"><span class="l">Прошедшие · ${past.length}</span></button>
     </div>`;
 
-    const body = list.length
-      ? `<div class="info" style="margin:0">` + list.map(b=>{
-          const ok = String(b.status).indexOf('одтвержд') > -1;
-          return `<div class="ln"><span class="k">${b.event}</span>
-            <span class="v" style="color:${ok?'#4CAF50':'#C9A227'}">${b.status}</span></div>`;
-        }).join('') + `</div>`
-      : `<div class="empty">${bkTab==='up' ? 'Пока ни одной записи.<br>Выберите игру на афише.' : 'Прошедших игр пока нет.'}</div>`;
+            const body = list.length
+          ? `<div class="info" style="margin:0">` + list.map(b=>{
+              const ok = String(b.status).indexOf('одтвержд') > -1;
+              const tap = ok ? ` onclick="openPlayers('${String(b.event).replace(/'/g,"\\'")}')" style="cursor:pointer"` : '';
+              return `<div class="ln"${tap}><span class="k">${b.event}${ok?' ›':''}</span>
+                <span class="v" style="color:${ok?'#4CAF50':'#C9A227'}">${b.status}</span></div>`;
+            }).join('') + `</div>`
+          : `<div class="empty">${bkTab==='up' ? 'Пока ни одной записи.<br>Выберите игру на афише.' : 'Прошедших игр пока нет.'}</div>`;
+
 
     myBk.innerHTML = tabs + body;
+    
+      if (plView){
+        const rows = plView.loading
+          ? `<div class="empty">Загрузка…</div>`
+          : (plView.players.length
+              ? plView.players.map(p=>`<div class="ln"><span class="k">${p.nick}</span></div>`).join('')
+              : `<div class="empty">Пока никого.</div>`);
+        const free = Math.max(0, plView.max - plView.taken);
+        const foot = plView.loading ? '' :
+          `<div class="ln" style="opacity:.6;margin-top:8px"><span class="k">${plView.taken} из ${plView.max} · свободно ${free}</span></div>`;
+        myBk.innerHTML = `
+          <div class="ln" onclick="closePlayers()" style="cursor:pointer;opacity:.7"><span class="k">‹ Назад</span></div>
+          <div class="ln" style="margin-top:6px"><span class="k" style="color:#C9A227">${plView.ev}</span></div>
+          <div class="info" style="margin:8px 0 0">${rows}${foot}</div>`;
+      }
+
   }
 
 
