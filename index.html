@@ -933,7 +933,7 @@ function book(){
         const rows = plView.loading
           ? `<div class="empty">Загрузка…</div>`
           : (plView.players.length
-              ? plView.players.map(p=>`<div class="ln"><span class="k">${p.nick}</span></div>`).join('')
+         ? plView.players.map(p=>`<div class="ln"><span class="k">${p.nick}</span><span class="v" style="color:#C9A227">${p.coins||0}</span></div>`).join('')
               : `<div class="empty">Пока никого.</div>`);
         const free = Math.max(0, plView.max - plView.taken);
         const foot = plView.loading ? '' :
