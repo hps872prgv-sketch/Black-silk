@@ -486,7 +486,7 @@ padding-bottom:env(safe-area-inset-bottom);position:sticky;bottom:0;
     <div class="nk" id="pNick"></div>
     <div class="info" style="margin:24px 0 0">
       <div class="ln"><span class="k">Сыграно</span><span class="v">0</span></div>
-      <div class="ln"><span class="k">Тени</span><span class="v" style="color:#C9A227">0</span></div>
+      <div class="ln"><span class="k">Тени</span><span class="v" id="pCoins" style="color:#C9A227">0</span></div>
       <div class="ln"><span class="k">Тариф</span><span class="v" id="pSex">—</span></div>
     </div>
     <span class="eyebrow" style="display:block;margin:26px 0 10px">Мои записи</span>
@@ -904,6 +904,7 @@ function book(){
     pNick.textContent = D.nick ? '«'+D.nick+'»' : '';
     pSex.textContent  = D.sex==='m' ? 'Мужской' : D.sex==='f' ? 'Женский' : '—';
     if(D.photo){ av2.style.backgroundImage=`url(${D.photo})`; av2.textContent=''; }
+      document.getElementById('pCoins').textContent = D.balance || 0;
 
     const all  = D.server || [];
     const up   = all.filter(b=>!isPast(b.event));
@@ -985,6 +986,7 @@ async function loadBookings(){
     const j = await r.json();
     if (j && j.bookings) {
       D.server = j.bookings;
+      D.balance = j.balance || 0
       renderProfile();
     }
   } catch(e){}
